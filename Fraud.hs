@@ -5,22 +5,25 @@ import Debug.Trace
 
 lower_theshhold = 0.05
 
---suspicioustransaction :: [Transaction] Double String -> (Bool, Double)
+makeIO :: (Bool, Double) -> IO (Bool, Double)
+makeIO x = do return x
+
+suspicioustransaction :: [Transaction] -> Double -> String -> (Bool, Double)
 suspicioustransaction transactions threshold origin_country = 
     if (genericLength transactions) < 50 then (False, threshold)
     else 
-        if (combineactivity rankdaily suspicioustransaction suspiciousname suspiciouscountry) < threshold then 
+        if (combineactivity rankdaily ranktransaction rankname rankcountry) < threshold then 
             (False, threshold)
         else (True, (threshold-0.05))
     where rankdaily = suspiciousdailytotal transactions
-          ranktransaction = suspicioustransaction transactions
+          ranktransaction = suspicioustransactiontotal transactions
           rankname = suspiciousname transactions
-          rankcounrty = suspiciouscountry transactions
+          rankcountry = suspiciouscountry transactions origin_country
 
-combineactivity daily transaction name country = 0
+combineactivity daily transaction name country = daily+transaction+name+country
 
-suspiciouscountry x = 8
-suspiciousname x = 9
+suspiciouscountry ((Transaction sum purchase date name country):prevtransactions) origin_country = 8
+suspiciousname ((Transaction sum purchase date name country):prevtransactions) = 9
 
 suspiciousdailytotal :: [Transaction] -> Double
 suspiciousdailytotal ((Transaction sum purchase date name country):prevtransactions)
