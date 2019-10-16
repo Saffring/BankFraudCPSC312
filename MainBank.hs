@@ -9,11 +9,6 @@ import Fraud
 makelow lst = [toLower x | x <- lst]
 
 suspiciousthreshhold = 5
-data Balance = Balance Double deriving (Show)
-
-sub :: Balance -> Double -> Balance
-sub (Balance d) double = Balance (d - double)
-
 
 startAccount :: Account -> IO Account
 startAccount account = do
@@ -29,9 +24,9 @@ startAccount account = do
     action <- getLine
     if (action == "t") 
         then do
-        newAccount <- maketransaction account
-        -- evaluate transaction
-        startAccount newAccount
+        newaccount <- maketransaction account
+        evaluatedaccount <- evaluatelatesttransaction newaccount
+        startAccount evaluatedaccount
     else if (action == "d") 
         then do return account    
     else do startAccount account
@@ -48,14 +43,12 @@ evaluateAccount (Account balance transactions (sus, threshold) origin_country) =
 evaluatelatesttransaction :: Account -> IO Account
 evaluatelatesttransaction (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country) =
     do 
-        if purchase /= True then return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
+        let transactions = ((Transaction sum purchase day name country):t)
+        if purchase /= True then return (Account balance transactions (sus, threshold) origin_country)
         else do
-            latesteval <- (suspicioustransaction ((Transaction sum purchase day name country):t) threshold)
-            if (fst latesteval == True) then return (Account balance ((Transaction sum purchase day name country):t) ((sus+1), (snd latesteval)) origin_country)
-            else return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
-
---suspicioustransaction :: [Transaction] Double -> (Bool, Double)
-suspicioustransaction transactions threshold = do return (True, threshold-0.05)
+            latesteval <- (suspicioustransaction transactions threshold origin_country)
+            if (fst latesteval == True) then return (Account balance transactions ((sus+1), (snd latesteval)) origin_country)
+            else return (Account balance transactions (sus, threshold) origin_country)
 
 summarizeaccount :: Account -> IO ()
 summarizeaccount (Account balance transactions (sus, threshold) origin_country) = 
@@ -66,9 +59,9 @@ summarizeaccount (Account balance transactions (sus, threshold) origin_country) 
         today <- getDate
         putStrLn(show (getpurchasesondate transactions today))
         putStr("Average spent per day: ")
-        putStrLn(show (getdailytotalaverage transactions))
+        putStrLn(take 5 (show (getdailytotalaverage transactions)))
         putStr("Average transaction cost: ")
-        putStrLn(show (getpurchasesaverage transactions))
+        putStrLn(take 5(show (getpurchasesaverage transactions)))
         return ()
 
 maketransaction :: Account -> IO Account
@@ -86,7 +79,6 @@ maketransaction (Account balance transactions (sus, threshold) origin_country) =
         if transactiontype==True then return (Account (balance-transactionsum) (transaction:transactions) (sus, threshold) origin_country)
         else return (Account (balance+transactionsum) (transaction:transactions) (sus, threshold) origin_country)
 
-
 affordabletransction :: Ord a => Bool -> a -> a -> IO Bool
 affordabletransction purchase sum balance = 
     if (balance < sum && purchase)
@@ -98,8 +90,8 @@ affordabletransction purchase sum balance =
 depositorpurchase :: IO Bool
 depositorpurchase = 
     do 
-       putStrLn("Press p if making a purchase or transfer")
-       putStrLn("Press d if making a deposit")
+       putStrLn("Press p to make a purchase")
+       putStrLn("Press d to make a deposit")
        transactiontype <- getLine
        if (transactiontype == "p") then 
         return True
@@ -116,6 +108,7 @@ gettransactionsum =
         else do gettransactionsum
 
 digits = "0123456789"
+
 converttoDouble :: [Char] -> Double
 converttoDouble string = 
     if filtered /= [] then read filtered :: Double
