@@ -36,9 +36,15 @@ sumpurchases ((Transaction sum purchase date name country):t)
 getpurchasetransactions :: [Transaction] -> [Transaction]
 getpurchasetransactions transactions = filter (\(Transaction balence purchase date name country)->purchase) transactions
 
-createdailysumlist :: [Transaction] -> [Double]
-createdailysumlist [] = []
-createdailysumlist ((Transaction balence purchase date name country):transactions) = 
+listpurchases :: [Transaction] -> [Double]
+listpurchases [] = []
+listpurchases ((Transaction sum purchase date name country):t) 
+   | purchase = sum:(listpurchases t)
+   | otherwise = (listpurchases t)
+
+listdailysums  :: [Transaction] -> [Double]
+listdailysums  [] = []
+listdailysums  ((Transaction balence purchase date name country):transactions) = 
     reverse (sumDays date [balence] transactions)
 
 -- assume transactions are sorted in order of date
