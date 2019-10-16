@@ -3,15 +3,26 @@ import Account
 import Data.List
 import Debug.Trace
 
+lower_theshhold = 0.05
+
 --suspicioustransaction :: [Transaction] Double String -> (Bool, Double)
 suspicioustransaction transactions threshold origin_country = 
     if (genericLength transactions) < 50 then (False, threshold)
-    else (False, threshold)
-    -- rank of daily
-    -- rank of transaction
-    -- rank of country
-    -- rank of name
+    else 
+        if (combineactivity rankdaily suspicioustransaction suspiciousname suspiciouscountry) < threshold then 
+            (False, threshold)
+        else (True, (threshold-0.05))
+    where rankdaily = suspiciousdailytotal transactions
+          ranktransaction = suspicioustransaction transactions
+          rankname = suspiciousname transactions
+          rankcounrty = suspiciouscountry transactions
 
+combineactivity daily transaction name country = 0
+
+suspiciouscountry x = 8
+suspiciousname x = 9
+
+suspiciousdailytotal :: [Transaction] -> Double
 suspiciousdailytotal ((Transaction sum purchase date name country):prevtransactions)
     | (sum < prevaverage || not purchase) = 1
     | sum < (prevaverage + (0.5*prevstdev)) = 0.33
@@ -23,6 +34,7 @@ suspiciousdailytotal ((Transaction sum purchase date name country):prevtransacti
     where prevstdev = stdev $ listdailysums (getpurchasetransactions prevtransactions)
           prevaverage = getdailytotalaverage prevtransactions
 
+suspicioustransactiontotal :: [Transaction] -> Double
 suspicioustransactiontotal ((Transaction sum purchase date name country):prevtransactions)
     | (sum < prevaverage || not purchase) = 1
     | sum < (prevaverage + (0.5*prevstdev)) = 0.33
