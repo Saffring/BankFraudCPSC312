@@ -46,7 +46,7 @@ evaluatelatesttransaction (Account balance ((Transaction sum purchase day name c
         let transactions = ((Transaction sum purchase day name country):t)
         if purchase /= True then return (Account balance transactions (sus, threshold) origin_country)
         else do
-            latesteval <- (suspicioustransaction transactions threshold origin_country)
+            latesteval <- makeIO $ (suspicioustransaction transactions threshold origin_country)
             if (fst latesteval == True) then return (Account balance transactions ((sus+1), (snd latesteval)) origin_country)
             else return (Account balance transactions (sus, threshold) origin_country)
 
