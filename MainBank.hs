@@ -38,36 +38,38 @@ startAccount account = do
 
 evaluateAccount :: Account -> IO Bool
 evaluateAccount (Account balance transactions (sus, threshold) origin_country) = 
-	do 
-		if (sus > suspiciousthreshhold) then 
-			do 
-				putStrLn("Account is determined to have been comprimised and will be deactivated.")
-				return True
-		else return False
+    do 
+        if (sus > suspiciousthreshhold) then 
+            do 
+                putStrLn("Account is determined to have been comprimised and will be deactivated.")
+                return True
+        else return False
 
 evaluatelatesttransaction :: Account -> IO Account
 evaluatelatesttransaction (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country) =
-	do 
-		if purchase /= True then return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
-		else do
-			latesteval <- (suspicioustransaction ((Transaction sum purchase day name country):t) threshold)
-			if (fst latesteval == True) then return (Account balance ((Transaction sum purchase day name country):t) ((sus+1), (snd latesteval)) origin_country)
-			else return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
+    do 
+        if purchase /= True then return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
+        else do
+            latesteval <- (suspicioustransaction ((Transaction sum purchase day name country):t) threshold)
+            if (fst latesteval == True) then return (Account balance ((Transaction sum purchase day name country):t) ((sus+1), (snd latesteval)) origin_country)
+            else return (Account balance ((Transaction sum purchase day name country):t) (sus, threshold) origin_country)
 
 --suspicioustransaction :: [Transaction] Double -> (Bool, Double)
 suspicioustransaction transactions threshold = do return (True, threshold-0.05)
 
 summarizeaccount :: Account -> IO ()
 summarizeaccount (Account balance transactions (sus, threshold) origin_country) = 
-	do
-		let stringbalence = (show balance)
-		putStr("Current Balence is ")
-		putStrLn(stringbalence)
-		putStr("Average spent per day is ")
-		putStrLn("TO BE DETERMINED")
-		putStr("Average transaction cost is ")
-		putStrLn("TO BE DETERMINED")
-		return ()
+    do
+        putStr("Current Balence: ")
+        putStrLn(show balance)
+        putStr("Amount spent today: ")
+        today <- getDate
+        putStrLn(show (getpurchasesondate transactions today))
+        putStr("Average spent per day: ")
+        putStrLn(show (getdailytotalaverage transactions))
+        putStr("Average transaction cost: ")
+        putStrLn(show (getpurchasesaverage transactions))
+        return ()
 
 maketransaction :: Account -> IO Account
 maketransaction (Account balance transactions (sus, threshold) origin_country) = 
@@ -87,52 +89,52 @@ maketransaction (Account balance transactions (sus, threshold) origin_country) =
 
 affordabletransction :: Ord a => Bool -> a -> a -> IO Bool
 affordabletransction purchase sum balance = 
-	if (balance < sum && purchase)
+    if (balance < sum && purchase)
   then do
     putStrLn "Insufficient funds, transaction denied"
     return False
-  else return True	 
+  else return True 
 
 depositorpurchase :: IO Bool
 depositorpurchase = 
-	do 
-	   putStrLn("Press p if making a purchase or transfer")
-	   putStrLn("Press d if making a deposit")
-	   transactiontype <- getLine	
-	   if (transactiontype == "p") then 
-	   	return True
-	   else if (transactiontype == "d") then return False 
-	   else do depositorpurchase
+    do 
+       putStrLn("Press p if making a purchase or transfer")
+       putStrLn("Press d if making a deposit")
+       transactiontype <- getLine
+       if (transactiontype == "p") then 
+        return True
+       else if (transactiontype == "d") then return False 
+       else do depositorpurchase
 
 gettransactionsum :: IO Double
 gettransactionsum = 
-	do
-		putStrLn("Please input the transaction sum")
-		amount <- getLine
-		let converted = (converttoDouble amount)
-		if (converted /= -1) then return converted 
-		else do gettransactionsum
+    do
+        putStrLn("Please input the transaction sum")
+        amount <- getLine
+        let converted = (converttoDouble amount)
+        if (converted /= -1) then return converted 
+        else do gettransactionsum
 
 digits = "0123456789"
 converttoDouble :: [Char] -> Double
 converttoDouble string = 
-	if filtered /= [] then read filtered :: Double
-	else -1
-	where filtered = filter (\x-> x `elem` digits) string
+    if filtered /= [] then read filtered :: Double
+    else -1
+    where filtered = filter (\x-> x `elem` digits) string
 
 gettransactioncountry ::  IO String
 gettransactioncountry = 
-	do
-		putStrLn("Please input the transaction country")
-		country <- getLine
-		return country
+    do
+        putStrLn("Please input the transaction country")
+        country <- getLine
+        return country
 
 gettransactionname::  IO String
 gettransactionname = 
-	do
-		putStrLn("Please give a name for the transaction")
-		name <- getLine
-		return name
+    do
+        putStrLn("Please give a name for the transaction")
+        name <- getLine
+        return name
 
 getDate :: IO (Integer, Int, Int)
 getDate = do
