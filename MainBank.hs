@@ -47,7 +47,10 @@ evaluatelatesttransaction (Account balance ((Transaction sum purchase day name c
         if purchase /= True then return (Account balance transactions (sus, threshold) origin_country)
         else do
             latesteval <- makeIO $ (suspicioustransaction transactions threshold origin_country)
-            if (fst latesteval == True) then return (Account balance transactions ((sus+1), (snd latesteval)) origin_country)
+            if (fst latesteval == True) then 
+                do 
+                    putStrLn("The last transaction was deemed to be suspicious. The theshhold for fraudulent activity has been lowered for account protection.")
+                    return (Account balance transactions ((sus+1), (snd latesteval)) origin_country)
             else return (Account balance transactions (sus, threshold) origin_country)
 
 summarizeaccount :: Account -> IO ()
