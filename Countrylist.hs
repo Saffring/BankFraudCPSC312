@@ -2,7 +2,7 @@ module Countrylist where
 
 countrystring = foldr (++) [] countrylist
 
-countrylist = ["united states","canada","afghanistan","albania","algeria","american samoa","andorra","angola",
+countrylist = ["usa","canada","afghanistan","albania","algeria","american samoa","andorra","angola",
     "anguilla","antarctica","antigua and/or barbuda","argentina","armenia","aruba","australia","austria","azerbaijan",
     "bahamas","bahrain","bangladesh","barbados","belarus","belgium","belize","benin","bermuda","bhutan","bolivia",
     "bosnia and herzegovina","botswana","bouvet island","brazil","british lndian ocean territory","brunei darussalam",
