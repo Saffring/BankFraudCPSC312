@@ -1,5 +1,7 @@
 module Account where
 import Debug.Trace
+import Data.Char
+import qualified Data.ByteString.Char8
 
 transactionlist = [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10,t11, t12, t13, t14, t15, t16, t17, t18, t19, 
    t20,t21, t22, t23, t24, t25, t26, t27, t28, t29,
@@ -25,7 +27,7 @@ data Account = Account Double [Transaction] (Int, Double) String deriving (Show)
 -- A String denoting the country where the transaction took place.
 data Transaction = Transaction Double Bool (Integer, Int, Int) String String deriving (Show)
 
-t0 = Transaction 100 False (2019, 10, 15) "Paycheck" "Canada"
+t0 = Transaction 100 True (2019, 10, 15) "Paycheck" "USA"
 t1 = Transaction 2.65 True (2019, 10, 14) "Coffee" "Canada"
 t2 = Transaction 20.95 True (2019, 10, 13) "Earls" "Canada"
 t3 = Transaction 37.72 True (2019, 10, 13) "Safeway" "Canada"
@@ -104,14 +106,14 @@ t75 = Transaction 400 True (2019, 09, 05) "Withdrawel" "Mexico"
 t76 = Transaction 1.98 True (2019, 09, 05) "Starbucks" "Mexico"
 t77 = Transaction 198 True (2019, 09, 04) "Shell" "Mexico"
 t78 = Transaction 5.45 True (2019,  09, 04) "Airport" "Mexico"
-t79 = Transaction 297.44 True (2019, 09, 03) "Taxes Canada" "United States"
-t80 = Transaction 45.67 True (2019, 09, 02) "Whole Foods" "United States"
-t81 = Transaction 2.89 True (2019, 09, 02) "Starbucks" "United States"
-t82 = Transaction 6.87 True (2019, 09, 02) "Starbucks" "United States"
-t83 = Transaction 90.34 True (2019, 09, 01) "Shell" "United States"
-t84 = Transaction 5.90 True (2019, 09, 01) "Hot Pie Pizzer" "United States"
-t85 = Transaction 15.98 True (2019, 08, 31) "Uber" "United States"
-t86 = Transaction 190.23 True (2019, 08, 31) "Trader Joes" "United States"
+t79 = Transaction 297.44 True (2019, 09, 03) "Taxes Canada" "USA "
+t80 = Transaction 45.67 True (2019, 09, 02) "Whole Foods" "USA"
+t81 = Transaction 2.89 True (2019, 09, 02) "Starbucks" "USA"
+t82 = Transaction 6.87 True (2019, 09, 02) "Starbucks" "USA"
+t83 = Transaction 90.34 True (2019, 09, 01) "Shell" "USA"
+t84 = Transaction 5.90 True (2019, 09, 01) "Hot Pie Pizzer" "USA"
+t85 = Transaction 15.98 True (2019, 08, 31) "Uber" "USA"
+t86 = Transaction 190.23 True (2019, 08, 31) "Trader Joes" "USA"
 t87 = Transaction 20 True (2019, 08, 31) "Air Canada" "Canada"
 t88 = Transaction 20.79 True (2019, 08, 30) "BC Liquor Store" "Canada"
 t89 = Transaction 870 True (2019, 08, 29) "Rent" "Canada"
@@ -126,6 +128,8 @@ t97 = Transaction 15.66 True (2019, 08, 23) "Front and Company" "Canada"
 t98 = Transaction 35.65 True (2019, 08, 22) "The Emerald" "Canada"
 t99 = Transaction 19.87 False (2019, 08, 21) "Black Checker Cab" "Canada"
 t100 = Transaction 7.08 True (2019, 08, 21) "BC Liquor Store" "Canada"
+
+a = Account 1000 transactionlist (1, 0.8) "Canada"
 
 sumpurchases :: [Transaction] -> Double
 sumpurchases [] = 0
@@ -159,3 +163,9 @@ getpurchasesondate [] wanteddate = 0
 getpurchasesondate ((Transaction balence purchase date name country):transactions) wanteddate  
     | (date == wanteddate && purchase) = balence + getpurchasesondate transactions wanteddate
     | otherwise = getpurchasesondate transactions wanteddate
+
+listcountriesasbytestrings :: [Transaction] -> Data.ByteString.Char8.ByteString
+listcountriesasbytestrings transactions =
+  Data.ByteString.Char8.pack (listcountries transactions)
+       where listcountries [] = [] 
+             listcountries ((Transaction balence purchase date name country):transactions) = ([toLower x |x<-country]++" ")++(listcountries transactions)
