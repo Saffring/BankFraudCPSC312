@@ -1,9 +1,11 @@
 module Fraud where
 import Account
 import Data.List
-import Debug.Trace
 import Data.Char
+import Debug.Trace
 import Countrylist
+import Freq
+import qualified Data.ByteString.Char8 as BC
 
 lower_theshhold = 0.05
 
@@ -14,38 +16,37 @@ suspicioustransaction :: [Transaction] -> Double -> String -> (Bool, Double)
 suspicioustransaction transactions threshold origin_country = 
     if (genericLength transactions) < 50 then (False, threshold)
     else 
-        if (combineactivity rankdaily ranktransaction rankname rankcountry) < threshold then 
+        if (combineactivity rankdaily ranktransaction rankcountry) < threshold then 
             (False, threshold)
         else (True, (threshold-0.05))
     where rankdaily = suspiciousdailytotal transactions
           ranktransaction = suspicioustransactiontotal transactions
-          rankname = suspiciousname transactions
           rankcountry = suspiciouscountry transactions origin_country
 
-combineactivity daily transaction name country = daily+transaction+name+country
 
+combineactivity :: Double -> Double -> Double -> Double
+combineactivity daily transaction country =
+  if country == 0 then traceShow((daily+transaction)/2) $ (daily+transaction)/2
+  else traceShow(daily) traceShow(transaction) traceShow(country) $ (daily+transaction+country)/3
+
+buffer = 0.10
 suspiciouscountry :: [Transaction] -> String -> Double
 suspiciouscountry ((Transaction sum purchase date name country):prevtransactions) origincountry
   | country == origincountry = 0
-  | notElem country countrylist = 1
-  | otherwise = 0.5
+  | notElem (map toLower country) countrylist = 1
+  | otherwise = (1 - evaluatecountry country prevtransactions-buffer)
 
-countrypercentage :: String -> [Transaction] -> Double
-countrypercentage thiscountry ((Transaction sum purchase date name country):prevtransactions) = 0.9999 - sqrt (occurences thiscountry prevtransactions / fromIntegral (length prevtransactions))
-occurences :: String -> [Transaction] -> Double
-occurences thiscountry [] = 0
-occurences thiscountry ((Transaction sum purchase date name country):prevtransactions)
-  | thiscountry == country = 1 + occurences thiscountry prevtransactions
-  | thiscountry /= country = occurences thiscountry prevtransactions
 
-suspiciousname ((Transaction sum purchase date name country):prevtransactions) = 9
+evaluatecountry country transactions = measure (tabulate (train training)) (BC.pack country)
+   where training = ((listcountriesasbytestrings transactions) <> (BC.pack countrystring))
+
 
 suspiciousdailytotal :: [Transaction] -> Double
 suspiciousdailytotal ((Transaction sum purchase date name country):prevtransactions)
-    | (sum < prevaverage || not purchase) = 1
+    | (sum < prevaverage || not purchase) = 0+buffer
     | sum < (prevaverage + (0.5*prevstdev)) = 0.33
     | sum < (prevaverage + (1*prevstdev)) = 0.66
-    | sum < (prevaverage + (1.5*prevstdev)) = traceShow(sum) $ 0.85
+    | sum < (prevaverage + (1.5*prevstdev)) = 0.85
     | sum < (prevaverage + (2*prevstdev)) = 0.95
     | sum < (prevaverage + (2.5*prevstdev)) = 0.98
     | otherwise = 0.99
@@ -54,10 +55,10 @@ suspiciousdailytotal ((Transaction sum purchase date name country):prevtransacti
 
 suspicioustransactiontotal :: [Transaction] -> Double
 suspicioustransactiontotal ((Transaction sum purchase date name country):prevtransactions)
-    | (sum < prevaverage || not purchase) = 1
+    | (sum < prevaverage || not purchase) = 0
     | sum < (prevaverage + (0.5*prevstdev)) = 0.33
     | sum < (prevaverage + (1*prevstdev)) = 0.66
-    | sum < (prevaverage + (1.5*prevstdev)) = traceShow(sum) $ 0.85
+    | sum < (prevaverage + (1.5*prevstdev)) = 0.85
     | sum < (prevaverage + (2*prevstdev)) = 0.95
     | sum < (prevaverage + (2.5*prevstdev)) = 0.98
     | otherwise = 0.99
