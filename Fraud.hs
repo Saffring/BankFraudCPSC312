@@ -2,6 +2,8 @@ module Fraud where
 import Account
 import Data.List
 import Debug.Trace
+import Data.Char
+import Countrylist
 
 lower_theshhold = 0.05
 
@@ -22,7 +24,11 @@ suspicioustransaction transactions threshold origin_country =
 
 combineactivity daily transaction name country = daily+transaction+name+country
 
-suspiciouscountry ((Transaction sum purchase date name country):prevtransactions) origin_country = 8
+suspiciouscountry :: [Transaction] -> String -> Double
+suspiciouscountry ((Transaction sum purchase date name country):prevtransactions) origincountry
+  | country == origincountry = 0
+  | notElem country countrylist = 1
+  | otherwise = 0.5
 suspiciousname ((Transaction sum purchase date name country):prevtransactions) = 9
 
 suspiciousdailytotal :: [Transaction] -> Double
