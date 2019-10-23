@@ -9,4 +9,3 @@ The following variables are analyzed:
 * The transaction cost compared to the average transaction cost
 * Amount spent in the day compared to the average previous daily expenditure 
 * The country in which the transaction took place
-* The name of the transaction
