@@ -26,8 +26,8 @@ suspicioustransaction transactions threshold origin_country =
 
 combineactivity :: Double -> Double -> Double -> Double
 combineactivity daily transaction country =
-  if country == 0 then traceShow((daily+transaction)/2) $ (daily+transaction)/2
-  else traceShow(daily) traceShow(transaction) traceShow(country) $ (daily+transaction+country)/3
+  if country == 0 then (daily+transaction)/2
+  else (daily+transaction+country)/3
 
 buffer = 0.10
 suspiciouscountry :: [Transaction] -> String -> Double
