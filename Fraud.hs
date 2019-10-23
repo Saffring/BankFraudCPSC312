@@ -29,6 +29,15 @@ suspiciouscountry ((Transaction sum purchase date name country):prevtransactions
   | country == origincountry = 0
   | notElem country countrylist = 1
   | otherwise = 0.5
+
+countrypercentage :: String -> [Transaction] -> Double
+countrypercentage thiscountry ((Transaction sum purchase date name country):prevtransactions) = 1 - sqrt (occurences thiscountry prevtransactions / fromIntegral (length prevtransactions))
+occurences :: String -> [Transaction] -> Double
+occurences thiscountry [] = 0
+occurences thiscountry ((Transaction sum purchase date name country):prevtransactions)
+  | thiscountry == country = 1 + occurences thiscountry prevtransactions
+  | thiscountry /= country = occurences thiscountry prevtransactions
+
 suspiciousname ((Transaction sum purchase date name country):prevtransactions) = 9
 
 suspiciousdailytotal :: [Transaction] -> Double
