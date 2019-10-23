@@ -10,6 +10,7 @@ makelow lst = [toLower x | x <- lst]
 
 suspiciousthreshhold = 5
 
+-- try: startAccount A
 startAccount :: Account -> IO Account
 startAccount account = do
     comprimised <- evaluateAccount account
@@ -19,7 +20,6 @@ startAccount account = do
     summary <- (summarizeaccount account) 
     putStrLn("\n")
     putStrLn("Press t to make a transaction")
-    putStrLn("Press s to get account summary")
     putStrLn("Press d to get deactivate account")
     action <- getLine
     if (action == "t") 
@@ -71,12 +71,14 @@ maketransaction :: Account -> IO Account
 maketransaction (Account balance transactions (sus, threshold) origin_country) = 
     do
         transactiontype <- depositorpurchase
+        transactioncountry <- gettransactioncountry
         transactionsum <- gettransactionsum
         affordable <- (affordabletransction transactiontype transactionsum balance)
-        if (not affordable) then return (Account balance transactions (sus, threshold) origin_country)
-        else do
         transactiondate <- getDate
-        transactioncountry <- gettransactioncountry
+        if (not affordable) then do 
+            let denied = (Transaction 0 False transactiondate "Purchase Denied" transactioncountry)
+            return (Account balance (denied:transactions) (sus, threshold) origin_country)
+        else do
         transactionname <- gettransactionname     
         let transaction = (Transaction transactionsum transactiontype transactiondate transactionname transactioncountry) 
         if transactiontype==True then return (Account (balance-transactionsum) (transaction:transactions) (sus, threshold) origin_country)
@@ -105,7 +107,7 @@ gettransactionsum :: IO Double
 gettransactionsum = 
     do
         putStrLn("Please input the transaction sum")
-        amount <- getLine
+        amount <- getLineFixed
         let converted = (converttoDouble amount)
         if (converted /= -1) then return converted 
         else do gettransactionsum
@@ -122,17 +124,30 @@ gettransactioncountry ::  IO String
 gettransactioncountry = 
     do
         putStrLn("Please input the transaction country")
-        country <- getLine
+        country <- getLineFixed
         return country
 
 gettransactionname::  IO String
 gettransactionname = 
     do
         putStrLn("Please give a name for the transaction")
-        name <- getLine
+        name <- getLineFixed
         return name
 
 getDate :: IO (Integer, Int, Int)
 getDate = do
     date <- getCurrentTime
     return (toGregorian $ utctDay date)
+
+getLineFixed =
+   do
+     line <- getLine
+     return (fixdel line)
+
+
+fixdel st
+   | '\DEL' `elem` st = fixdel (remdel st)
+   | otherwise = st
+remdel ('\DEL':r) = r
+remdel (a:'\DEL':r) = r
+remdel (a:r) = a: remdel r
